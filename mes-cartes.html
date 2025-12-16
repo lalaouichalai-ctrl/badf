@@ -5,6 +5,8 @@
   <title>Mes Cartes Bancaires</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="styles.css">
+      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
     .card-container { display: flex; justify-content: center; margin: 30px 0; }
     .bank-card {
@@ -83,47 +85,104 @@
 </footer>
 
 
-<script src="shared.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const currentUser = checkAuth();
-  if (!currentUser) return;
 
-  document.getElementById('client-solde').textContent = formatCurrency(currentUser.solde);
-  document.getElementById('advisor-name').textContent = currentUser.advisor;
-  document.querySelector('.last-conn').textContent = `Dernière connexion le ${currentUser.lastConnection}`;
+// Fonction pour mettre à jour l'affichage de la carte et du bouton
+function updateCardUI(user, toggleBtn) {
+    const statusEl = document.getElementById('card-status-text');
+    // NOTE: On suppose que la carte est stockée sous user.carte.active
+    const status = user.carte && user.carte.active; 
+    
+    toggleBtn.classList.remove('btn-primary', 'btn-danger');
 
-  if (currentUser.cardNumber) {
-    const formattedNumber = currentUser.cardNumber.match(/.{1,4}/g).join(' ');
-    document.getElementById('card-number').textContent = formattedNumber;
-    document.getElementById('card-holder-name').textContent = currentUser.cardHolderName || currentUser.name.toUpperCase();
-    document.getElementById('expiry-date').textContent = currentUser.expiryDate || 'MM/AA';
-    document.getElementById('card-type').textContent = currentUser.cardType || 'VISA';
-  } else {
-    document.getElementById('bank-card').innerHTML = '<div style="padding: 50px; text-align: center; color: white;">Aucune carte enregistrée.</div>';
-  }
-
-  const statusDisplay = document.getElementById('account-status-display');
-  const reasonDisplay = document.getElementById('lock-reason-display');
-
-  if (currentUser.isLocked) {
-    statusDisplay.className = 'message-error';
-    statusDisplay.innerHTML = 'Votre compte est <strong>BLOQUÉ</strong> !';
-    if (currentUser.lockReason) {
-      reasonDisplay.textContent = `Raison: ${currentUser.lockReason}`;
-      reasonDisplay.style.display = 'block';
+    if (status) {
+        statusEl.textContent = "Statut : CARTE ACTIVE";
+        statusEl.className = 'card-status-text status-actif';
+        toggleBtn.textContent = "Bloquer Temporairement la Carte";
+        toggleBtn.classList.add('btn-danger'); // Rouge pour Bloquer
+    } else {
+        statusEl.textContent = "Statut : CARTE BLOQUÉE TEMPORAIREMENT";
+        statusEl.className = 'card-status-text status-bloquee';
+        toggleBtn.textContent = "Réactiver la Carte";
+        toggleBtn.classList.add('btn-primary'); // Bleu pour Réactiver
     }
-  } else {
-    statusDisplay.className = 'message-success';
-    statusDisplay.innerHTML = 'Votre compte est <strong>ACTIF</strong>.';
-    reasonDisplay.style.display = 'none';
-  }
+}
 
-  document.querySelector('.status').addEventListener('click', (e) => {
-    e.preventDefault();
-    localStorage.removeItem('currentClientCode');
-    window.location.href = 'index.html';
-  });
+document.addEventListener('DOMContentLoaded', async () => {
+    
+    // 1. Récupérer les données les plus fraîches de Firebase
+    // ⚠️ CORRECTION : Utilisation de la fonction checkAuth (corrigée dans shared.js)
+    const user = await checkAuth(); 
+    const toggleBtn = document.getElementById('toggle-card-btn');
+    
+    if (!user) {
+        toggleBtn.textContent = "Session expirée. Veuillez vous reconnecter.";
+        return;
+    }
+
+    // --- Mise à jour de l'UI de l'en-tête (Données Firestore) ---
+    // Affichage du prénom et nom (comme géré dans checkAuth pour la cohérence)
+    const nameParts = user.name.split(' ');
+    const display = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[1]}` : user.name;
+
+    document.getElementById('user-name-header').textContent = display;
+    document.getElementById('client-solde').textContent = formatCurrency(user.solde);
+    document.getElementById('advisor-name').textContent = user.advisor || 'Non attribué';
+    document.getElementById('last-conn').textContent = `Dernière connexion le ${user.lastConnection}`;
+    
+    // 2. Affichage de la carte et du statut
+    if (user.carte && user.carte.numero) {
+        // Affichage des détails de la carte
+        const formattedNumber = user.carte.numero.match(/.{1,4}/g).join(' ');
+        document.getElementById('card-number').textContent = formattedNumber;
+        document.getElementById('card-holder-name').textContent = user.name.toUpperCase();
+        document.getElementById('expiry-date').textContent = user.carte.expiration;
+        document.getElementById('card-type').textContent = user.carte.cardType || 'VISA';
+
+        // Affichage initial du statut
+        updateCardUI(user, toggleBtn);
+        toggleBtn.disabled = false; // Activation du bouton
+
+        // 3. Gestionnaire d'événement ASYNCHRONE pour la bascule
+        toggleBtn.addEventListener('click', async () => {
+            const isActivating = !user.carte.active; 
+            
+            toggleBtn.disabled = true; 
+            toggleBtn.textContent = isActivating ? "Réactivation en cours..." : "Désactivation en cours...";
+
+            try {
+                // Bascule de l'état local
+                user.carte.active = isActivating; 
+                
+                // Sauvegarde ASYNCHRONE sur Firebase
+                // ⚠️ CORRECTION : Utilisation de la fonction updateUser (disponible dans shared.js)
+                const success = await updateUser(user); 
+                
+                if (success) {
+                    // Mise à jour de l'UI après succès de la sauvegarde
+                    updateCardUI(user, toggleBtn);
+                } else {
+                    throw new Error("Échec de la sauvegarde.");
+                }
+                
+            } catch (error) {
+                console.error("Échec de la mise à jour de la carte sur Firebase.", error);
+                alert("Erreur: Impossible de mettre à jour le statut de la carte. Veuillez vérifier votre connexion.");
+                
+                // Annuler la bascule locale si la sauvegarde échoue
+                user.carte.active = !isActivating; 
+            } finally {
+                // S'assurer que le bouton revient à l'état cliquable
+                toggleBtn.disabled = false;
+                updateCardUI(user, toggleBtn); // Afficher le bon état final
+            }
+        });
+    } else {
+        document.getElementById('bank-card').innerHTML = '<div style="padding: 50px; text-align: center; color: white;">Aucune carte enregistrée.</div>';
+        document.getElementById('card-status-text').textContent = "Statut : NON ATTRIBUÉ";
+        toggleBtn.textContent = "Carte non trouvée.";
+        toggleBtn.disabled = true;
+    }
 });
 </script>
 </body>

@@ -5,6 +5,8 @@
   <title>Mon RIB et Informations Bancaires</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="styles.css">
+      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
     .rib-box {
       background: #fff;
@@ -75,26 +77,38 @@
 <footer>
   <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
 </footer>
-
-<script src="shared.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const currentUser = checkAuth();
-  if (!currentUser) return;
+document.addEventListener('DOMContentLoaded', async () => {
+    
+    // 1. Récupérer les données les plus fraîches de Firebase
+    // ⚠️ CORRECTION : Utilisation de la fonction checkAuth (corrigée dans shared.js)
+    const user = await checkAuth(); 
+    
+    if (!user) {
+        // La redirection vers index.html est gérée par checkAuth() si l'utilisateur n'est pas trouvé.
+        return;
+    }
 
-  document.getElementById('client-solde').textContent = formatCurrency(currentUser.solde);
-  document.getElementById('advisor-name').textContent = currentUser.advisor;
-  document.querySelector('.last-conn').textContent = `Dernière connexion le ${currentUser.lastConnection}`;
-
-  document.getElementById('rib-name').textContent = currentUser.name;
-  document.getElementById('rib-iban').textContent = currentUser.rib || 'Non renseigné';
-  document.getElementById('rib-bic').textContent = currentUser.bic || 'Non renseigné';
-
-  document.querySelector('.status').addEventListener('click', (e) => {
-    e.preventDefault();
-    localStorage.removeItem('currentClientCode');
-    window.location.href = 'index.html';
-  });
+    // --- Mise à jour de l'UI de l'en-tête (Données Firestore) ---
+    // Affichage du prénom et nom (comme géré dans checkAuth pour la cohérence)
+    const nameParts = user.name.split(' ');
+    const display = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[1]}` : user.name;
+    
+    document.getElementById('user-name-header').textContent = display;
+    document.getElementById('client-solde').textContent = formatCurrency(user.solde);
+    document.getElementById('advisor-name').textContent = user.advisor || 'Non attribué';
+    document.getElementById('last-conn').textContent = `Dernière connexion le ${user.lastConnection}`;
+    
+    // 2. Affichage des données du RIB (lecture des champs user.rib et user.bic)
+    document.getElementById('rib-name').textContent = user.name.toUpperCase();
+    
+    // Formatage de l'IBAN pour la lisibilité (groupement par 4 caractères)
+    const ibanRaw = user.rib || 'NON RENSEIGNÉ';
+    // Assurez-vous que la chaîne n'est pas vide avant d'essayer de la formater
+    const formattedIban = ibanRaw.length > 0 ? ibanRaw.match(/.{1,4}/g).join(' ') : ibanRaw;
+    
+    document.getElementById('rib-iban').textContent = formattedIban;
+    document.getElementById('rib-bic').textContent = user.bic || 'NON RENSEIGNÉ';
 });
 </script>
 </body>

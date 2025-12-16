@@ -5,6 +5,8 @@
   <title>Mon Profil</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="styles.css">
+      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
 <header>
@@ -76,32 +78,101 @@
 <footer>
   <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
 </footer>
-
-
-<script src="shared.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const currentUser = checkAuth();
-  if (!currentUser) return;
 
-  document.getElementById('client-solde').textContent = formatCurrency(currentUser.solde);
-  document.getElementById('advisor-name').textContent = currentUser.advisor;
-  document.querySelector('.last-conn').textContent = `Dernière connexion le ${currentUser.lastConnection}`;
+// Variable globale pour stocker les données utilisateur
+let currentUserData = null;
 
-  document.getElementById('profile-name').textContent = currentUser.name;
-  document.getElementById('profile-client-code').textContent = currentUser.clientCode;
-  document.getElementById('profile-advisor').textContent = currentUser.advisor;
-  document.getElementById('profile-phone').textContent = currentUser.phone || 'Non renseigné';
-  document.getElementById('profile-email').textContent = currentUser.email || 'Non renseigné';
-  document.getElementById('profile-address').textContent = currentUser.address || 'Non renseigné';
-  document.getElementById('profile-rib').textContent = currentUser.rib || 'Non renseigné';
-  document.getElementById('profile-bic').textContent = currentUser.bic || 'Non renseigné';
+// Fonction pour mettre à jour l'UI avec les données du profil
+function displayProfileData(user) {
+    // Utilisation de la logique de nom du shared.js
+    const nameParts = user.name.split(' ');
+    const display = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[1]}` : user.name;
+    
+    document.getElementById('user-name-header').textContent = display;
+    document.getElementById('client-solde').textContent = formatCurrency(user.solde);
+    document.getElementById('advisor-name').textContent = user.advisor || 'Non attribué';
+    document.getElementById('last-conn').textContent = `Dernière connexion le ${user.lastConnection}`;
 
-  document.querySelector('.status').addEventListener('click', (e) => {
-    e.preventDefault();
-    localStorage.removeItem('currentClientCode');
-    window.location.href = 'index.html';
-  });
+    document.getElementById('profile-name').textContent = user.name;
+    document.getElementById('profile-client-code').textContent = user.clientCode;
+    document.getElementById('profile-advisor').textContent = user.advisor || 'Non renseigné';
+    document.getElementById('profile-phone').textContent = user.phone || 'Non renseigné';
+    document.getElementById('profile-email').textContent = user.email || 'Non renseigné';
+    document.getElementById('profile-address').textContent = user.address || 'Non renseigné';
+    document.getElementById('profile-rib').textContent = user.rib || 'Non renseigné';
+    document.getElementById('profile-bic').textContent = user.bic || 'Non renseigné';
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Charger les données fraîches de Firebase
+    // ⚠️ CORRECTION : Utilisation de la fonction checkAuth (corrigée dans shared.js)
+    const user = await checkAuth(); 
+    
+    if (user) {
+        currentUserData = user;
+        displayProfileData(user);
+    } else {
+        // Redirection gérée par checkAuth()
+        return;
+    }
+
+    // 2. Logique de changement de PIN
+    const pinForm = document.getElementById('pin-form');
+    const newPinInput = document.getElementById('new-pin');
+    const pinMessage = document.getElementById('pin-message');
+    const pinSubmitBtn = document.getElementById('pin-submit-btn');
+
+    pinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const newPin = newPinInput.value;
+        
+        if (!/^\d{6}$/.test(newPin)) {
+            pinMessage.className = 'error-message';
+            pinMessage.textContent = 'Le PIN doit être composé de 6 chiffres.';
+            pinMessage.style.display = 'block';
+            return;
+        }
+        
+        if (!currentUserData) {
+            pinMessage.className = 'error-message';
+            pinMessage.textContent = 'Erreur: Données utilisateur introuvables. Réessayez.';
+            pinMessage.style.display = 'block';
+            return;
+        }
+        
+        // Sauvegarde du PIN (le PIN est stocké en clair pour la simulation)
+        pinSubmitBtn.disabled = true;
+        pinSubmitBtn.textContent = 'Mise à jour en cours...';
+        pinMessage.style.display = 'none';
+
+        try {
+            // Mettre à jour la propriété PIN et sauvegarder dans Firestore
+            currentUserData.pin = newPin;
+            
+            // ⚠️ CORRECTION : Utilisation de la fonction updateUser (disponible dans shared.js)
+            const success = await updateUser(currentUserData); 
+            
+            if (success) {
+                pinMessage.className = 'success-message';
+                pinMessage.textContent = 'Votre code PIN a été mis à jour avec succès.';
+                pinMessage.style.display = 'block';
+                newPinInput.value = ''; // Effacer le champ après succès
+            } else {
+                throw new Error("Échec de la sauvegarde.");
+            }
+            
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour du PIN:", error);
+            pinMessage.className = 'error-message';
+            pinMessage.textContent = 'Erreur de connexion/sauvegarde. Impossible de changer le PIN.';
+            pinMessage.style.display = 'block';
+        } finally {
+            pinSubmitBtn.disabled = false;
+            pinSubmitBtn.textContent = 'Changer le PIN';
+        }
+    });
 });
 </script>
 </body>

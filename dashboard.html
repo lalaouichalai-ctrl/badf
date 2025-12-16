@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <title>Synthèse de vos comptes</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="shared.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   
 </head>
 <body>
@@ -67,26 +68,42 @@
 </main><footer>
   <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
 </footer>
-
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const currentUser = checkAuth();
-  if (!currentUser) return;
+document.addEventListener('DOMContentLoaded', async () => {
+    
+    // ⚠️ CORRECTION : Utilisation de la fonction d'authentification et de chargement des données.
+    // checkAuth() gère l'authentification et la redirection si l'utilisateur n'est pas trouvé.
+    const user = await checkAuth(); 
+    
+    // Si checkAuth redirige ou ne trouve pas d'utilisateur (il renvoie null), 
+    // le reste de la fonction ne s'exécute pas.
+    if (!user) {
+        return; 
+    }
 
-  document.getElementById('user-name').textContent = `Bienvenue ${currentUser.name}`;
-  document.getElementById('last-conn').textContent = `Dernière connexion le ${currentUser.lastConnection}`;
-  document.getElementById('user-solde').textContent = formatCurrency(currentUser.solde);
+    // --- Mise à jour de l'UI avec les données de l'utilisateur ---
+    
+    // Pour afficher le prénom et nom (méthode existante dans shared.js)
+    const nameParts = user.name.split(' ');
+    const display = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[1]}` : user.name;
 
-  const depotTable = document.getElementById('depot-accounts');
-  const compteNum = currentUser.rib.slice(-12).replace(/(.{4})/g, '$1-').slice(0, -1);
+    document.getElementById('user-name').textContent = `Bienvenue ${display}`;
+    document.getElementById('last-conn').textContent = `Dernière connexion le ${user.lastConnection}`;
+    document.getElementById('user-solde').textContent = formatCurrency(user.solde);
 
-  depotTable.innerHTML = `
-    <tr>
-      <td>${compteNum}</td>
-      <td>Compte de dépôts</td>
-      <td>${formatCurrency(currentUser.solde)}</td>
-    </tr>
-  `;
+    const depotTable = document.getElementById('depot-accounts');
+    
+    // Pour l'affichage d'un numéro de compte simulé basé sur l'IBAN (user.rib est l'IBAN complet)
+    // On prend les derniers 12 caractères de l'IBAN (champs user.rib) et on les formate.
+    const compteNum = (user.rib || 'XXXXXXXXXXXXXXXX').slice(-12).replace(/(.{4})/g, '$1 ').trim();
+
+    depotTable.innerHTML = `
+        <tr>
+          <td>FRXX XXXX ${compteNum}</td>
+          <td>Compte de dépôts</td>
+          <td>${formatCurrency(user.solde)}</td>
+        </tr>
+    `;
 });
 </script>
 </body>

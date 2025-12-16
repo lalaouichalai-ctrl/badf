@@ -7,6 +7,8 @@
   <script src="shared.js"></script>
 </head>
 <body>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <header>
   <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
     <span id="user-name">Bienvenue</span>
@@ -38,41 +40,69 @@
 </footer>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const currentUser = checkAuth();
-  if (!currentUser) return;
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Mise à jour de l'en-tête (méthode asynchrone)
+    // ⚠️ CORRECTION : Utilisation de checkAuth()
+    const user = await checkAuth(); 
+    
+    if (!user) {
+        // Redirection gérée par checkAuth()
+        return; 
+    }
+    
+    // Remplissage de l'en-tête (fait par checkAuth si les éléments existent, mais on les met à jour explicitement si nécessaire)
+    const nameParts = user.name.split(' ');
+    const display = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[1]}` : user.name;
+    document.getElementById('user-name').textContent = `Bienvenue ${display}`;
+    
+    // 2. Récupération des paramètres de l'URL
+    const params = new URLSearchParams(window.location.search);
 
-  document.getElementById('user-name').textContent = `Bienvenue ${currentUser.name}`;
-  const params = new URLSearchParams(window.location.search);
+    const montantStr = params.get('montant'); // Chaîne de caractères
+    const soldeApresStr = params.get('soldeApres'); // Chaîne de caractères
+    
+    const motif = params.get('motif') || '';
+    const iban = params.get('iban') || '';
+    const bic = params.get('bic') || '';
+    const domiciliation = params.get('domiciliation') || '';
+    const nomPrenom = params.get('user_name') || '';
+    const statut = params.get('statut');
 
-  const montant = parseFloat(params.get('montant')) || 0;
-  const motif = params.get('motif') || '';
-  const iban = params.get('iban') || '';
-  const bic = params.get('bic') || '';
-  const domiciliation = params.get('domiciliation') || '';
-  const nomPrenom = params.get('user_name') || '';
 
-  if (montant > 0) {
-    const transaction = {
-      date: new Date().toISOString(),
-      type: "Virement",
-      description: `${motif} vers ${nomPrenom} (${iban})`,
-      amount: -Math.abs(montant)
-    };
-    addPastHistory(currentUser.clientCode, transaction);
+    if (statut === 'succes' && montantStr && soldeApresStr) {
+        
+        // ⚠️ CORRECTION : Formatage des devises pour l'affichage
+        const montantFormatted = formatCurrency(parseFloat(montantStr));
+        // soldeApresStr est déjà formaté par virement.html, mais si on voulait le refaire : 
+        // const soldeApresFormatted = formatCurrency(parseFloat(soldeApresStr));
 
-    const updatedUser = getUsers().find(u => u.clientCode === currentUser.clientCode);
+        // AFFICHAGE DES RÉSULTATS
+        document.getElementById('conf-montant').textContent = montantFormatted;
+        document.getElementById('conf-solde').textContent = soldeApresStr; // Utilisation de la chaîne déjà formatée
+        document.getElementById('conf-motif').textContent = motif;
+        document.getElementById('conf-iban').textContent = iban;
+        document.getElementById('conf-bic').textContent = bic;
+        document.getElementById('conf-domiciliation').textContent = domiciliation;
+        document.getElementById('conf-nomPrenom').textContent = nomPrenom;
 
-    document.getElementById('confirmation-message').textContent =
-      `Votre virement de ${formatCurrency(montant)} à ${nomPrenom} a été enregistré.`;
-    document.getElementById('conf-montant').textContent = formatCurrency(montant);
-    document.getElementById('conf-solde').textContent = formatCurrency(updatedUser.solde);
-    document.getElementById('conf-motif').textContent = motif;
-    document.getElementById('conf-iban').textContent = iban;
-    document.getElementById('conf-bic').textContent = bic;
-    document.getElementById('conf-domiciliation').textContent = domiciliation;
-    document.getElementById('conf-nomPrenom').textContent = nomPrenom;
-  }
+        document.getElementById('confirmation-message').innerHTML =
+            `✅ Virement de fonds enregistré avec succès. <br>Votre virement de **${montantFormatted}** à **${nomPrenom}** a été traité.`;
+        
+    } else {
+        // Affichage en cas de problème ou si les paramètres sont incomplets
+        document.getElementById('confirmation-message').innerHTML = `
+            ❌ Erreur de confirmation : La transaction n'a pas pu être vérifiée. Veuillez consulter votre historique.
+        `;
+        document.getElementById('conf-montant').textContent = "---";
+        document.getElementById('conf-solde').textContent = "---";
+        
+        // Afficher les données même si incomplètes pour le debug
+        document.getElementById('conf-motif').textContent = motif || 'Non spécifié';
+        document.getElementById('conf-iban').textContent = iban || 'Non spécifié';
+        document.getElementById('conf-bic').textContent = bic || 'Non spécifié';
+        document.getElementById('conf-domiciliation').textContent = domiciliation || 'Non spécifié';
+        document.getElementById('conf-nomPrenom').textContent = nomPrenom || 'Non spécifié';
+    }
 });
 </script>
 </body>

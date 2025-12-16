@@ -84,69 +84,95 @@
             <button type="submit">Se connecter</button>
             <p id="errorMessage" class="error-message" style="display:none;"></p>
         </form>
-    </div>
+   </div> </center>
 
-    <script src="shared.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const loginForm = document.getElementById('login-form');
-            const clientCodeInput = document.getElementById('clientCode');
-            const pinInput = document.getElementById('pin');
-            const errorMessage = document.getElementById('errorMessage');
-
-            // Si un utilisateur est déjà connecté, rediriger
-            if (localStorage.getItem('currentClientCode')) {
-                // Tenter de déterminer s'il s'agit d'un admin pour la redirection
-                const users = getUsers();
-                const currentCode = localStorage.getItem('currentClientCode');
-                const currentUser = users.find(u => u.clientCode === currentCode);
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="shared.js"></script>
+    <script>
+        // Rendre la fonction de rappel asynchrone pour utiliser await
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loginForm = document.getElementById('login-form');
+            const clientCodeInput = document.getElementById('clientCode');
+            const pinInput = document.getElementById('pin');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // --- Logique de Redirection si Session Active ---
+            // Le chargement de getUsers() ici permet de s'assurer que le cache LocalStorage est à jour
+            // avec les dernières données de Firestore AVANT la vérification de session.
+            try {
+                // IMPORTANT : Attendre la synchronisation des utilisateurs avant de vérifier la session
+                const users = await getUsers(); 
                 
-                if (currentUser) {
-                    if (currentUser.isAdmin) {
-                        window.location.href = 'manage.html';
+                const currentCode = localStorage.getItem('currentClientCode');
+                
+                if (currentCode) {
+                    const currentUser = users.find(u => u.clientCode === currentCode);
+                    
+                    if (currentUser) {
+                        if (currentUser.isAdmin) {
+                            window.location.href = 'manage.html';
+                        } else {
+                            window.location.href = 'dashboard.html';
+                        }
+                        return; // Arrêter l'exécution du script
                     } else {
-                        window.location.href = 'dashboard.html';
+                        // Le code de session est invalide ou l'utilisateur a été supprimé
+                        localStorage.removeItem('currentClientCode');
                     }
-                    return;
                 }
+            } catch (error) {
+                // Si la connexion Firebase échoue ici, on permet de continuer
+                console.error("Erreur de synchronisation initiale de Firebase:", error);
             }
 
 
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                errorMessage.style.display = 'none';
+            // --- Logique de Connexion au Formulaire ---
+            // Rendre la fonction de soumission ASYNCHRONE
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                errorMessage.style.display = 'none';
 
-                const clientCode = clientCodeInput.value.trim();
-                const pin = pinInput.value.trim();
+                const clientCode = clientCodeInput.value.trim();
+                const pin = pinInput.value.trim();
 
-                if (clientCode.length !== 10 || pin.length !== 6) {
-                    errorMessage.textContent = 'Veuillez entrer un Code Client (10 chiffres) et un PIN (6 chiffres) valides.';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
+                if (clientCode.length !== 10 || pin.length !== 6) {
+                    errorMessage.textContent = 'Veuillez entrer un Code Client (10 chiffres) et un PIN (6 chiffres) valides.';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
 
-                const users = getUsers();
-                const user = users.find(u => u.clientCode === clientCode && u.pin === pin);
+                try {
+                    // Recharger les utilisateurs pour avoir les données fraîches pour la vérification
+                    const users = await getUsers(); 
+                    const user = users.find(u => u.clientCode === clientCode && u.pin === pin);
 
-                if (user) {
-                    // Connexion réussie : Stocker le code client
-                    localStorage.setItem('currentClientCode', user.clientCode);
+                    if (user) {
+                        // Connexion réussie : Stocker le code client
+                        localStorage.setItem('currentClientCode', user.clientCode);
 
-                    // Mettre à jour l'heure de dernière connexion
-                    user.lastConnection = new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
-                    updateUser(user);
-                    
-                    if (user.isAdmin) {
-                        window.location.href = 'manage.html';
+                        // Mettre à jour l'heure de dernière connexion (écriture asynchrone)
+                        user.lastConnection = new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+                        
+                        // Utiliser await car updateUser écrit dans Firestore
+                        await updateUser(user);
+                        
+                        if (user.isAdmin) {
+                            window.location.href = 'manage.html';
+                        } else {
+                            window.location.href = 'dashboard.html';
+                        }
                     } else {
-                        window.location.href = 'dashboard.html';
+                        errorMessage.textContent = 'Code Client ou PIN incorrect.';
+                        errorMessage.style.display = 'block';
                     }
-                } else {
-                    errorMessage.textContent = 'Code Client ou PIN incorrect.';
+                } catch (error) {
+                    console.error("Erreur de connexion/synchronisation:", error);
+                    errorMessage.textContent = 'Erreur serveur. Impossible de vérifier vos identifiants. Veuillez réessayer.';
                     errorMessage.style.display = 'block';
                 }
-            });
-        });
-    </script>
+            });
+        });
+    </script>
 </body>
 </html>
