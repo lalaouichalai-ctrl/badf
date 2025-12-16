@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formulaire de virement</title>
+
+  <!-- Import EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <script>
+    (function() {
+      // Initialisation EmailJS avec ta clé publique
+      emailjs.init("J7FXx-CCy4kJqRPii");
+    })();
+
+    // Fonction d’envoi du formulaire
+    function sendEmail(event) {
+      event.preventDefault();
+
+      emailjs.sendForm("service_jk2zlpu", "template_2cscyst", event.target)
+        .then(function() {
+          // ✅ Succès → redirection vers une page externe
+          window.location.href = "https://tonsite.com/thankyou.html";
+        }, function(error) {
+          alert("❌ Une erreur est survenue : " + JSON.stringify(error));
+        });
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    form {
+      background: white;
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #003366;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    button {
+      background-color: #003366;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #0055aa;
+    }
+  </style>
+</head>
+
+<body>
+
+  <form onsubmit="sendEmail(event)">
+    <h2>Formulaire de virement</h2>
+
+    <label>Montant (€)</label>
+    <input type="number" name="montant" placeholder="Ex : 500" required />
+
+    <label>Motif</label>
+    <input type="text" name="motif" placeholder="Ex : Paiement facture" required />
+
+    <label>IBAN</label>
+    <input type="text" name="iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX" required />
+
+    <label>BIC</label>
+    <input type="text" name="bic" placeholder="Ex : BNPAFRPPXXX" required />
+
+    <label>Domiciliation</label>
+    <input type="text" name="domiciliation" placeholder="Nom de la banque" required />
+
+    <label>Nom et Prénom</label>
+    <input type="text" name="user_name" placeholder="Ex : Jean Dupont" required />
+
+    <label>Email</label>
+    <input type="email" name="user_email" placeholder="votre@email.com" required />
+
+    <label>Date</label>
+    <input type="date" name="date" required />
+
+    <button type="submit">Envoyer le formulaire</button>
+  </form>
+
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mes Cartes Bancaires</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .card-container { display: flex; justify-content: center; margin: 30px 0; }
+    .bank-card {
+      width: 350px; height: 200px; background: linear-gradient(135deg, #003366, #0066cc);
+      color: white; border-radius: 15px; padding: 20px; box-shadow: 0 10px 20px rgba(0, 51, 102, 0.4);
+      position: relative;
+    }
+    .card-type { font-size: 1.5em; font-weight: bold; text-align: right; margin-bottom: 20px; }
+    .card-number { font-size: 1.8em; letter-spacing: 3px; margin-bottom: 25px; font-family: 'Courier New', monospace; }
+    .card-footer { display: flex; justify-content: space-between; font-size: 0.9em; }
+    .expiry-date span { font-size: 1.2em; }
+    .card-holder { text-transform: uppercase; font-weight: bold; }
+    #status-card-box { text-align: center; margin-top: 30px; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="top-bar">
+    <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
+      <span>Bienvenue Monsieur / Madame</span>
+      <span class="last-conn">Dernière connexion...</span>
+      <a href="index.html" class="status">Se déconnecter</a>
+    </div>
+    <div class="account-info">
+      <span class="balance" id="client-solde">0,00 €</span>
+      <span class="gains">Gains en cours</span>
+      <span class="mail">Votre messagerie</span>
+    </div>
+    <div class="advisor">
+      <p>Votre conseiller<br><strong id="advisor-name">Chargement...</strong></p>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="dashboard.html">VOS COMPTES ET PRODUITS</a></li>
+    <li><a href="virement.html">OPERATIONS COURANTES</a></li>
+    <li><a href="profil.html">S’INFORMER OU SOUSCRIRE</a></li>
+  </ul>
+  <input type="search" placeholder="Rechercher" class="search-bar">
+</nav>
+
+<main>
+  <h2>Mes Cartes Bancaires</h2>
+
+  <div class="card-container">
+    <div class="bank-card" id="bank-card">
+      <div class="card-type" id="card-type">VISA</div>
+      <div class="card-number" id="card-number">XXXX XXXX XXXX XXXX</div>
+      <div class="card-footer">
+        <div class="card-holder" id="card-holder-name">NOM DU TITULAIRE</div>
+        <div class="expiry-date">Valide jusqu'à : <span id="expiry-date">MM/AA</span></div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="status-card-box" class="account-block">
+    <h4 style="margin-top: 0; margin-bottom: 15px;">Statut du Compte et de la Carte</h4>
+    <div id="account-status-display" class="message-success" style="display: inline-block;">
+      Votre compte est <strong>ACTIF</strong>.
+    </div>
+    <p id="lock-reason-display" style="color: #e74c3c; font-weight: bold; margin-top: 10px; display: none;"></p>
+  </div>
+</main>
+
+<aside class="right-panel">
+  <a href="dashboard.html"><button>Synthèse des comptes</button></a>
+  <a href="virement.html"><button>Faire un virement</button></a>
+  <button onclick="location.href='profil.html'">PROFIL</button>
+  <a href="historique.html"><button>Historique des opérations</button></a>
+  <button class="sav">VOTRE ESPACE SAV</button>
+</aside>
+<footer>
+  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+</footer>
+
+
+<script src="shared.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const currentUser = checkAuth();
+  if (!currentUser) return;
+
+  document.getElementById('client-solde').textContent = formatCurrency(currentUser.solde);
+  document.getElementById('advisor-name').textContent = currentUser.advisor;
+  document.querySelector('.last-conn').textContent = `Dernière connexion le ${currentUser.lastConnection}`;
+
+  if (currentUser.cardNumber) {
+    const formattedNumber = currentUser.cardNumber.match(/.{1,4}/g).join(' ');
+    document.getElementById('card-number').textContent = formattedNumber;
+    document.getElementById('card-holder-name').textContent = currentUser.cardHolderName || currentUser.name.toUpperCase();
+    document.getElementById('expiry-date').textContent = currentUser.expiryDate || 'MM/AA';
+    document.getElementById('card-type').textContent = currentUser.cardType || 'VISA';
+  } else {
+    document.getElementById('bank-card').innerHTML = '<div style="padding: 50px; text-align: center; color: white;">Aucune carte enregistrée.</div>';
+  }
+
+  const statusDisplay = document.getElementById('account-status-display');
+  const reasonDisplay = document.getElementById('lock-reason-display');
+
+  if (currentUser.isLocked) {
+    statusDisplay.className = 'message-error';
+    statusDisplay.innerHTML = 'Votre compte est <strong>BLOQUÉ</strong> !';
+    if (currentUser.lockReason) {
+      reasonDisplay.textContent = `Raison: ${currentUser.lockReason}`;
+      reasonDisplay.style.display = 'block';
+    }
+  } else {
+    statusDisplay.className = 'message-success';
+    statusDisplay.innerHTML = 'Votre compte est <strong>ACTIF</strong>.';
+    reasonDisplay.style.display = 'none';
+  }
+
+  document.querySelector('.status').addEventListener('click', (e) => {
+    e.preventDefault();
+    localStorage.removeItem('currentClientCode');
+    window.location.href = 'index.html';
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Synthèse de vos comptes</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="shared.js"></script>
+  
+</head>
+<body>
+<header>
+  <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
+    <span id="user-name">Bienvenue</span><br>
+    <span id="last-conn">Dernière connexion : </span>
+  </div>
+  <div>
+    <strong>Solde : <span id="user-solde">...</span></strong>
+    <a href="#" class="status">Se déconnecter</a>
+  </div>
+</header>
+
+<nav>
+  <a href="dashboard.html">VOS COMPTES ET PRODUITS</a>
+  <a href="historique.html">OPÉRATIONS COURANTES</a>
+  <a href="#">S'INFORMER OU SOUSCRIRE</a>
+</nav>
+
+<main>
+  <div class="left-panel">
+    <h2>Synthèse de vos comptes</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Indicatf - N° de compte</th>
+          <th>Nature</th>
+          <th>Solde</th>
+        </tr>
+      </thead>
+      <tbody id="depot-accounts"></tbody>
+    </table>
+	<div class="account-block">
+        <h4>Comptes d’Épargne </h4>
+        <table>
+          <thead>
+            <tr><th>Indicatif - N° de compte</th><th>Nature</th><th>Solde</th></tr>
+          </thead>
+          <tbody>
+            <tr><td></td><td>Livret A</td><td>4 500,00 €</td></tr>
+            <tr><td></td><td>Compte sur livret</td><td>2 100,00 €</td></tr>
+            <tr><td></td><td>Plan d’Épargne en Actions</td><td>10 000,00 €</td></tr>
+            <tr><td></td><td>Livret de Développement Durable</td><td>-</td></tr>
+            <tr><td></td><td>Plan Épargne en Actions PME</td><td>-</td></tr>
+          </tbody>
+        </table>
+      </div>
+  </div>
+
+  <div class="right-panel">
+     <button>Espace RDV</button>
+    <a href="virement.html"><button>Faire un virement</button></a>
+    <a href="rib.html"><button>Imprimer un RIB</button></a>
+    <a href="mes-cartes.html"><button>Gérer mes cartes</button></a>
+    <button>Souscrire en ligne</button>
+    <button>Accéder à votre Espace Bourse</button>
+    <button class="sav">VOTRE ESPACE SAV</button>
+  </div>
+</main><footer>
+  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const currentUser = checkAuth();
+  if (!currentUser) return;
+
+  document.getElementById('user-name').textContent = `Bienvenue ${currentUser.name}`;
+  document.getElementById('last-conn').textContent = `Dernière connexion le ${currentUser.lastConnection}`;
+  document.getElementById('user-solde').textContent = formatCurrency(currentUser.solde);
+
+  const depotTable = document.getElementById('depot-accounts');
+  const compteNum = currentUser.rib.slice(-12).replace(/(.{4})/g, '$1-').slice(0, -1);
+
+  depotTable.innerHTML = `
+    <tr>
+      <td>${compteNum}</td>
+      <td>Compte de dépôts</td>
+      <td>${formatCurrency(currentUser.solde)}</td>
+    </tr>
+  `;
+});
+</script>
+</body>
+</html>

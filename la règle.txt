@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Replace this with your own admin check strategy (e.g., by UID or email)
+    function isAdmin() {
+      return request.auth != null &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /users/{clientCode} {
+      // Read for authenticated users (or restrict further to owner if you link clientCode to auth)
+      allow read: if request.auth != null;
+      // Write: admin only
+      allow write: if isAdmin();
+    }
+
+    match /transactions/{txId} {
+      // Read for authenticated users
+      allow read: if request.auth != null;
+      // Write: admin only (or allow client write for own transactions if you implement Auth linkage)
+      allow write: if isAdmin();
+    }
+  }
+}
+
+
+
+Étape 1 : Ajouter les champs manuellement
+Dans ce document, ajoute les champs suivants avec leurs types et valeurs :
+
+Champ	Type	Valeur exemple
+clientCode	string	"1234567890"
+pin	string	"123456"
+name	string	"Jean Dupont"
+solde	number	2500
+isAdmin	boolean	false
+isLocked	boolean	false
+lockReason	string	""
+rib	string	"FR76 1234 5678 9012 3456 7890"
+bic	string	"BNPAFRPP"
+phone	string	"0601020304"
+email	string	"jean.dupont@email.com"
+address	string	"12 Rue de Paris, 75001 Paris"
+advisor	string	"Mme Martin"
+cardNumber	string	"1111222233334444"
+cardHolderName	string	"JEAN DUPONT"
+expiryDate	string	"12/28"
+cardType	string	"VISA"
+lastConnection	string	"11/11/2025 à 23h54"

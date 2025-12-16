@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Gestion des Utilisateurs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    main { margin-right: 20px; }
+    .main-nav { background-color: #003366 !important; }
+    #user-summary-dashboard table { margin-top: 15px; width: 100%; border-collapse: collapse; }
+    #user-summary-dashboard th, #user-summary-dashboard td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+    #user-summary-dashboard th { background-color: #f9f9f9; }
+    .btn-select-user { padding: 6px 10px; font-size: 0.9em; cursor: pointer; }
+    .small-tabs .subtab { margin-right: 8px; }
+    .panel { margin-top: 15px; }
+    .account-block { padding: 15px; background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; }
+    form label { display:block; margin-top:8px; font-weight:600; }
+    form input, form select, form textarea { width:100%; padding:8px; margin-top:6px; }
+    form button { margin-top:12px; padding:10px; }
+  </style>
+</head>
+<body class="app-bg">
+
+<header>
+  <div class="top-bar">
+    <div class="user-info">
+      <span>Bienvenue Admin</span>
+      <span class="last-conn">Dernière connexion...</span>
+      <span class="status" id="logoutLink">Déconnexion</span>
+    </div>
+    <div class="account-info">
+      <span class="balance">ADMIN</span>
+      <span class="gains">Mode</span>
+      <span class="mail">Gestion</span>
+    </div>
+    <div class="advisor">
+      <p>Système<br><strong>Complet</strong></p>
+    </div>
+  </div>
+</header>
+
+<nav class="main-nav">
+  <ul>
+    <li><a href="manage.html">GESTION DES COMPTES</a></li>
+    <li><a href="#">OUTILS BANCAIRES</a></li>
+    <li><a href="#">RAPPORTS</a></li>
+  </ul>
+  <input type="search" placeholder="Rechercher" class="search-bar">
+</nav>
+
+<main>
+  <h2 class="page-title">Tableau de Bord Administrateur</h2>
+
+  <nav class="subtabs">
+    <a href="#" class="subtab active" data-subtab="dashboard-tab">Tableau de Bord Clients</a>
+    <a href="#" class="subtab" data-subtab="create-tab">Créer un Client</a>
+  </nav>
+
+  <div class="panel" data-subtab-panel="dashboard-tab">
+    <div id="user-summary-dashboard" class="account-block">
+      <h3>Synthèse des Clients</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Code Client</th>
+            <th>Solde</th>
+            <th>Statut Compte</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="user-dashboard-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="admin-tools" class="account-block" hidden>
+    <h3 id="managing-user-name">Gestion de : [Nom du Client]</h3>
+
+    <nav class="subtabs small-tabs">
+      <a href="#" class="subtab active" data-subtab="manage-profile-tab">Profil & Solde</a>
+      <a href="#" class="subtab" data-subtab="manage-rib-tab">RIB</a>
+      <a href="#" class="subtab" data-subtab="manage-cards-tab">Cartes & Statut</a>
+      <a href="#" class="subtab" data-subtab="manage-history-tab">Historique</a>
+    </nav>
+
+    <div class="panel" data-subtab-panel="manage-profile-tab">
+      <h4>Modifier Profil & Solde</h4>
+      <form id="profile-form">
+        <label for="manage-name">Nom Complet</label>
+        <input id="manage-name" required>
+        <label for="manage-pin">PIN (6 chiffres)</label>
+        <input id="manage-pin" maxlength="6" required>
+        <label for="manage-solde">Solde Actuel (EUR)</label>
+        <input id="manage-solde" type="number" step="0.01" required>
+        <label for="manage-phone">Téléphone Mobile</label>
+        <input id="manage-phone" required>
+        <label for="manage-email">Email de Contact</label>
+        <input id="manage-email" type="email" required>
+        <label for="manage-address">Adresse Postale</label>
+        <input id="manage-address" required>
+        <label for="manage-advisor">Conseiller Attitré</label>
+        <input id="manage-advisor" required>
+        <button type="submit" class="btn btn-primary">Sauvegarder TOUTES les Modifications</button>
+      </form>
+    </div>
+
+    <div class="panel" data-subtab-panel="manage-rib-tab" hidden>
+      <h4>Modifier RIB (IBAN) & BIC</h4>
+      <form id="rib-form">
+        <label for="manage-rib">RIB (IBAN)</label>
+        <input id="manage-rib" required>
+        <label for="manage-bic">BIC (SWIFT)</label>
+        <input id="manage-bic" required>
+        <button type="submit" class="btn btn-primary">Sauvegarder RIB</button>
+      </form>
+    </div>
+
+    <div class="panel" data-subtab-panel="manage-cards-tab" hidden>
+      <h4>Gérer Cartes Bancaires & Statut Global</h4>
+      <form id="card-data-form">
+        <label for="manage-card-number">Numéro de Carte (16 chiffres)</label>
+        <input id="manage-card-number" maxlength="16" required>
+        <label for="manage-card-holder-name">Nom du Titulaire</label>
+        <input id="manage-card-holder-name" required>
+        <label for="manage-expiry-date">Date d'Expiration (MM/AA)</label>
+        <input id="manage-expiry-date" placeholder="01/25" required>
+        <label for="manage-card-type">Type de Carte</label>
+        <select id="manage-card-type" required>
+          <option value="VISA">VISA</option>
+          <option value="MASTERCARD">MASTERCARD</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Sauvegarder Données de Carte</button>
+      </form>
+
+      <h4 style="margin-top: 20px;">Contrôle du Statut Global du Compte</h4>
+      <form id="account-status-form">
+        <label for="manage-lock-reason">Raison du Blocage (Visible par l'administrateur)</label>
+        <textarea id="manage-lock-reason" rows="3" placeholder="Ex: Fraude détectée, Documents manquants, etc."></textarea>
+        <div id="account-status-display" class="message-info"></div>
+        <button type="submit" id="toggle-account-btn" class="btn"></button>
+      </form>
+    </div>
+
+    <div class="panel" data-subtab-panel="manage-history-tab" hidden>
+      <h4>Ajouter une Opération Manuelle (Affecte le Solde)</h4>
+      <p class="message-info">Utilisez un montant négatif pour retraits/paiements, et positif pour dépôts/virements reçus.</p>
+      <form id="history-form">
+        <label for="hist-type">Type d'Opération</label>
+        <select id="hist-type" required>
+          <option value="Virement">Virement</option>
+          <option value="Retrait">Retrait</option>
+          <option value="Dépôt">Dépôt</option>
+          <option value="Paiement">Paiement Carte</option>
+          <option value="Agio">Agio / Frais Bancaires</option>
+        </select>
+        <label for="hist-amount">Montant (EUR)</label>
+        <input id="hist-amount" type="number" step="0.01" required>
+        <label for="hist-description">Description / Libellé</label>
+        <input id="hist-description" required>
+        <label for="hist-date">Date de l'Opération</label>
+        <input id="hist-date" type="date" required>
+        <button type="submit" class="btn btn-primary">Ajouter Opération & Mettre à Jour Solde</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="panel" data-subtab-panel="create-tab" hidden>
+    <div class="account-block">
+      <h3>Création d'un Nouveau Compte Client</h3>
+      <form id="create-user-form">
+        <label for="create-name">Nom Complet</label>
+        <input id="create-name" required>
+        <label for="create-client-code">Code Client (10 chiffres)</label>
+        <input id="create-client-code" maxlength="10" required>
+        <label for="create-pin">PIN (6 chiffres)</label>
+        <input id="create-pin" maxlength="6" required>
+        <label for="create-solde">Solde Initial (EUR)</label>
+        <input id="create-solde" type="number" step="0.01" value="0.00" required>
+        <label for="create-phone">Téléphone Mobile</label>
+        <input id="create-phone" required>
+        <label for="create-email">Email de Contact</label>
+        <input id="create-email" type="email" required>
+        <label for="create-address">Adresse Postale</label>
+        <input id="create-address" required>
+        <label for="create-rib">RIB (IBAN)</label>
+        <input id="create-rib" required>
+        <label for="create-bic">BIC (SWIFT)</label>
+        <input id="create-bic" required>
+        <label for="create-advisor">Conseiller Attitré</label>
+        <input id="create-advisor" value="M. Dupont" required>
+        <label for="create-cards-locked">Statut du Compte à la Création</label>
+        <select id="create-cards-locked">
+          <option value="false" selected>ACTIF</option>
+          <option value="true">BLOQUÉ</option>
+        </select>
+        <button type="submit" class="btn btn-success">Créer le Nouveau Client</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>© BNP Paribas - Tous droits réservés (Mode Admin)</p>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const adminUser = checkAuth(true);
+  if (!adminUser) return;
+
+  const userDashboardBody = document.getElementById('user-dashboard-body');
+  const adminTools = document.getElementById('admin-tools');
+  const managingUserName = document.getElementById('managing-user-name');
+  let selectedUser = null;
+
+  function renderUserDashboard() {
+    const allUsers = getUsers().filter(u => !u.isAdmin);
+    userDashboardBody.innerHTML = '';
+    allUsers.forEach(user => {
+      const row = userDashboardBody.insertRow();
+      row.insertCell().textContent = user.name;
+      row.insertCell().textContent = user.clientCode;
+      row.insertCell().textContent = formatCurrency(user.solde);
+      const statusCell = row.insertCell();
+      statusCell.textContent = user.isLocked ? '🔒 BLOQUÉ' : '✅ ACTIF';
+      statusCell.style.color = user.isLocked ? 'red' : 'green';
+      const actionCell = row.insertCell();
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-primary btn-select-user';
+      btn.textContent = 'Gérer';
+      btn.addEventListener('click', () => selectUser(user.clientCode));
+      actionCell.appendChild(btn);
+    });
+  }
+
+  function selectUser(clientCode) {
+    selectedUser = getUsers().find(u => u.clientCode === clientCode);
+    if (!selectedUser) return;
+    adminTools.hidden = false;
+    managingUserName.textContent = `Gestion de : ${selectedUser.name}`;
+    loadUserData(selectedUser);
+    document.querySelector('.small-tabs [data-subtab="manage-profile-tab"]').click?.();
+    adminTools.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function loadUserData(user) {
+    document.getElementById('manage-name').value = user.name || '';
+    document.getElementById('manage-pin').value = user.pin || '';
+    document.getElementById('manage-solde').value = user.solde ?? 0;
+    document.getElementById('manage-phone').value = user.phone || '';
+    document.getElementById('manage-email').value = user.email || '';
+    document.getElementById('manage-address').value = user.address || '';
+    document.getElementById('manage-advisor').value = user.advisor || '';
+    document.getElementById('manage-rib').value = user.rib || '';
+    document.getElementById('manage-bic').value = user.bic || '';
+    document.getElementById('manage-card-number').value = user.cardNumber || '';
+    document.getElementById('manage-card-holder-name').value = user.cardHolderName || (user.name ? user.name.toUpperCase() : '');
+    document.getElementById('manage-expiry-date').value = user.expiryDate || '';
+    document.getElementById('manage-card-type').value = user.cardType || 'VISA';
+    document.getElementById('manage-lock-reason').value = user.lockReason || '';
+    updateAccountStatusDisplay(user.isLocked);
+  }
+
+  function updateAccountStatusDisplay(isLocked) {
+    const statusDisplay = document.getElementById('account-status-display');
+    const toggleBtn = document.getElementById('toggle-account-btn');
+    const reasonText = selectedUser && selectedUser.lockReason
+      ? `<br> Motif enregistré : <strong>${selectedUser.lockReason}</strong>`
+      : '';
+    if (isLocked) {
+      statusDisplay.innerHTML = `Statut : Compte ACTUELLEMENT <strong>BLOQUÉ</strong>${reasonText}`;
+      statusDisplay.className = 'message-error';
+      toggleBtn.textContent = 'DÉBLOQUER le Compte (et effacer le motif)';
+      toggleBtn.className = 'btn btn-success';
+    } else {
+      statusDisplay.innerHTML = 'Statut : Compte ACTUELLEMENT <strong>ACTIF</strong>.';
+      statusDisplay.className = 'message-success';
+      toggleBtn.textContent = 'BLOQUER le Compte';
+      toggleBtn.className = 'btn btn-danger';
+      if (selectedUser && !selectedUser.isLocked) {
+        document.getElementById('manage-lock-reason').value = '';
+      }
+    }
+  }
+
+  function handleUpdate(callback, successMessage) {
+    if (!selectedUser) return;
+    callback();
+    if (updateUser(selectedUser)) {
+      alert(successMessage);
+      renderUserDashboard();
+      loadUserData(selectedUser);
+    } else {
+      alert('Erreur lors de la mise à jour.');
+    }
+  }
+
+  document.getElementById('profile-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleUpdate(() => {
+      selectedUser.name = document.getElementById('manage-name').value;
+      selectedUser.pin = document.getElementById('manage-pin').value;
+      selectedUser.solde = parseFloat(document.getElementById('manage-solde').value);
+      selectedUser.phone = document.getElementById('manage-phone').value;
+      selectedUser.email = document.getElementById('manage-email').value;
+      selectedUser.address = document.getElementById('manage-address').value;
+      selectedUser.advisor = document.getElementById('manage-advisor').value;
+    }, 'Profil, Contact et Solde mis à jour avec succès !');
+  });
+
+  document.getElementById('rib-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleUpdate(() => {
+      selectedUser.rib = document.getElementById('manage-rib').value;
+      selectedUser.bic = document.getElementById('manage-bic').value;
+    }, 'RIB mis à jour avec succès !');
+  });
+
+  document.getElementById('card-data-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleUpdate(() => {
+      selectedUser.cardNumber = document.getElementById('manage-card-number').value;
+      selectedUser.cardHolderName = document.getElementById('manage-card-holder-name').value;
+      selectedUser.expiryDate = document.getElementById('manage-expiry-date').value;
+      selectedUser.cardType = document.getElementById('manage-card-type').value;
+    }, 'Données de la carte mises à jour avec succès !');
+  });
+
+  document.getElementById('account-status-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const isCurrentlyLocked = selectedUser.isLocked;
+    handleUpdate(() => {
+      const newState = !isCurrentlyLocked;
+      selectedUser.isLocked = newState;
+      if (newState) {
+        selectedUser.lockReason = document.getElementById('manage-lock-reason').value.trim();
+      } else {
+        selectedUser.lockReason = '';
+      }
+      updateAccountStatusDisplay(newState);
+    }, `Compte ${selectedUser.isLocked ? 'BLOQUÉ' : 'DÉBLOQUÉ'} avec succès !`);
+  });
+
+  document.getElementById('history-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+    const amount = parseFloat(document.getElementById('hist-amount').value);
+    const type = document.getElementById('hist-type').value;
+    const description = document.getElementById('hist-description').value;
+    const dateInput = document.getElementById('hist-date').value;
+    const pastTransaction = {
+      date: new Date(dateInput).toISOString(),
+      type,
+      description,
+      amount
+    };
+    if (addPastHistory(selectedUser.clientCode, pastTransaction)) {
+      alert('Transaction ajoutée à l\'historique passé et solde mis à jour avec succès !');
+      document.getElementById('history-form').reset();
+      selectUser(selectedUser.clientCode);
+    } else {
+      alert('Échec de l\'ajout de la transaction.');
+    }
+  });
+
+  document.getElementById('create-user-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const isLockedOnCreation = document.getElementById('create-cards-locked').value === 'true';
+    const newUser = {
+      name: document.getElementById('create-name').value,
+      clientCode: document.getElementById('create-client-code').value,
+      pin: document.getElementById('create-pin').value,
+      solde: parseFloat(document.getElementById('create-solde').value),
+      phone: document.getElementById('create-phone').value,
+      email: document.getElementById('create-email').value,
+      address: document.getElementById('create-address').value,
+      rib: document.getElementById('create-rib').value,
+      bic: document.getElementById('create-bic').value,
+      advisor: document.getElementById('create-advisor').value,
+      isAdmin: false,
+      isLocked: isLockedOnCreation,
+      cardNumber: '0000000000000000',
+      cardHolderName: document.getElementById('create-name').value.toUpperCase(),
+      expiryDate: '01/99',
+      cardType: 'VISA'
+    };
+    if (createUser(newUser)) {
+      alert(`Le nouveau client ${newUser.name} (Code: ${newUser.clientCode}) a été créé avec succès !`);
+      document.getElementById('create-user-form').reset();
+      document.querySelector('.subtabs [data-subtab="dashboard-tab"]').click?.();
+      renderUserDashboard();
+    } else {
+      alert("Échec de la création du client. Le code client est peut-être déjà utilisé.");
+    }
+  });
+
+  // Navigation des sous-onglets
+  document.querySelectorAll('.subtabs .subtab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = tab.getAttribute('data-subtab');
+      document.querySelectorAll('[data-subtab-panel]').forEach(panel => {
+        panel.hidden = panel.getAttribute('data-subtab-panel') !== target;
+      });
+      document.querySelectorAll('.subtabs .subtab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  renderUserDashboard();
+});
+</script>
+</body>
+</html>

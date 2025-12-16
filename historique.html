@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Historique des opérations</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="shared.js"></script>
+</head>
+<body>
+<header>
+  <div class="top-bar">
+    <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
+      <span id="user-name">Bienvenue</span>
+      <span class="last-conn">Dernière connexion...</span>
+      <a href="index.html" class="status">Se déconnecter</a>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="dashboard.html">VOS COMPTES ET PRODUITS</a></li>
+    <li><a href="virement.html">OPERATIONS COURANTES</a></li>
+    <li><a href="#">S’INFORMER OU SOUSCRIRE</a></li>
+  </ul>
+  <input type="search" placeholder="Rechercher" class="search-bar">
+</nav>
+
+<main>
+  <div class="left-panel">
+    <h2>Historique de vos opérations</h2>
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Opération</th><th>Montant</th></tr>
+      </thead>
+      <tbody id="historique-list"></tbody>
+    </table>
+  </div>
+
+  <div class="right-panel">
+    <button onclick="location.href='dashboard.html'">SYNTHÈSE DES COMPTES</button>
+    <button onclick="location.href='historique.html'">HISTORIQUE DES OPÉRATIONS</button>
+    <button onclick="location.href='rib.html'">IMPRIMER UN RIB</button>
+	<button onclick="location.href='profil.html'">PROFIL</button>
+    <button onclick="location.href='virement.html'">FAIRE UN VIREMENT</button>
+  </div>
+</main>
+<footer>
+  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const currentUser = checkAuth();
+  if (!currentUser) return;
+  document.getElementById('user-name').textContent = `Bienvenue ${currentUser.name}`;
+
+  const freshUser = getUsers().find(u => u.clientCode === currentUser.clientCode);
+  const historiqueList = document.getElementById('historique-list');
+  historiqueList.innerHTML = '';
+
+  if (Array.isArray(freshUser.history) && freshUser.history.length > 0) {
+    freshUser.history.forEach(op => {
+      const tr = document.createElement('tr');
+      const sign = op.amount < 0 ? '-' : '+';
+      const color = op.amount < 0 ? 'red' : 'green';
+      tr.innerHTML = `
+        <td>${new Date(op.date).toLocaleDateString('fr-FR')}</td>
+        <td>${op.type} - ${op.description}</td>
+        <td style="color:${color}; font-weight:bold;">${sign}${formatCurrency(Math.abs(op.amount))}</td>
+      `;
+      historiqueList.appendChild(tr);
+    });
+  } else {
+    historiqueList.innerHTML = "<tr><td colspan='3'>Aucune opération enregistrée</td></tr>";
+  }
+});
+</script>
+</body>
+</html>

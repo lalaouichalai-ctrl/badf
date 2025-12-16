@@ -1,0 +1,216 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f9f9f9;
+    margin: 0;
+    color: #003366;
+}
+header {
+    background-color: #003366;
+    color: white;
+    padding: 10px;
+}
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.user-info span {
+    margin-right: 15px;
+}
+.status {
+    cursor: pointer;
+    font-weight: bold;
+}
+.account-info {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+.account-info .balance {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #ffcc00; /* Or jaune pour le solde */
+}
+.advisor p {
+    margin: 0;
+    text-align: right;
+}
+.advisor strong {
+    color: #ffcc00;
+}
+nav {
+    background-color: #e6ecf2;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+nav li {
+    margin-right: 20px;
+}
+nav a {
+    text-decoration: none;
+    color: #003366;
+    font-weight: bold;
+}
+.search-bar {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+main {
+    padding: 20px;
+    margin-right: 200px; /* Espace pour le right-panel */
+}
+h2 {
+    color: #003366;
+    border-bottom: 2px solid #0099cc;
+    padding-bottom: 5px;
+}
+.global-status {
+    margin-top: 20px;
+}
+.global-status h3 {
+    color: #0066cc;
+    margin-bottom: 10px;
+}
+.account-block {
+    background: white;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+.account-block h4 {
+    background-color: #0099cc;
+    color: white;
+    padding: 5px 10px;
+    margin: -10px -10px 10px -10px;
+    border-radius: 6px 6px 0 0;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+    text-align: left;
+}
+th {
+    background-color: #f0f0f0;
+}
+.right-panel {
+    position: fixed;
+    top: 150px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 160px;
+}
+.right-panel button {
+    background: #0066cc;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.right-panel button:hover {
+    opacity: 0.9;
+}
+.right-panel .sav {
+    background: #0099cc;
+    margin-top: 10px;
+}
+footer {
+    text-align: center;
+    padding: 10px;
+    background: #003366;
+    color: white;
+    margin-top: 20px;
+    /* Pour s'assurer qu'il reste en bas de la page, même si le contenu est court */
+    position: relative;
+    width: 100%;
+}
+/* Styles pour la page Admin (manage.html) */
+.subtabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #ccc;
+}
+.subtab {
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #003366;
+    font-weight: bold;
+    border-bottom: 3px solid transparent;
+    transition: border-bottom 0.3s;
+    margin-right: 10px;
+}
+.subtab.active {
+    border-bottom-color: #0099cc;
+}
+.subtabs.small-tabs .subtab {
+    font-size: 0.9em;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 15px;
+    padding: 15px 0;
+}
+.form-grid label {
+    font-weight: bold;
+    align-self: center;
+}
+.input-field, textarea, select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.message-info {
+    padding: 10px;
+    background-color: #e6f7ff;
+    border: 1px solid #91d5ff;
+    color: #003366;
+    border-radius: 4px;
+}
+.message-error {
+    padding: 10px;
+    background-color: #fff1f0;
+    border: 1px solid #ffa39e;
+    color: #cf1322;
+    font-weight: bold;
+    border-radius: 4px;
+}
+.message-success {
+    padding: 10px;
+    background-color: #f6ffed;
+    border: 1px solid #b7eb8f;
+    color: #389e0d;
+    font-weight: bold;
+    border-radius: 4px;
+}
+.full-width { grid-column: 1 / -1; }
+.btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-primary { background-color: #0066cc; color: white; }
+.btn-danger { background-color: #e74c3c; color: white; }
+.btn-success { background-color: #2ecc71; color: white; }

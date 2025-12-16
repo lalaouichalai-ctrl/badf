@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mon RIB et Informations Bancaires</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .rib-box {
+      background: #fff;
+      padding: 25px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .rib-box table { margin-top: 15px; width: 100%; border-collapse: collapse; }
+    .rib-box th, .rib-box td { font-size: 1.05em; padding: 12px 10px; border-bottom: 1px solid #eee; text-align:left; }
+    .rib-box th { width: 30%; background-color: #f9f9f9; }
+    .rib-box td { font-weight: bold; color: #0066cc; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="top-bar">
+    <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
+      <span>Bienvenue Monsieur / Madame</span>
+      <span class="last-conn">Dernière connexion...</span>
+      <span class="status">Déconnexion</span>
+    </div>
+    <div class="account-info">
+      <span class="balance" id="client-solde">0,00 €</span>
+      <span class="gains">Gains en cours</span>
+      <span class="mail">Votre messagerie</span>
+    </div>
+    <div class="advisor">
+      <p>Votre conseiller<br><strong id="advisor-name">Chargement...</strong></p>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="dashboard.html">VOS COMPTES ET PRODUITS</a></li>
+    <li><a href="virement.html">OPERATIONS COURANTES</a></li>
+    <li><a href="profil.html">S’INFORMER OU SOUSCRIRE</a></li>
+  </ul>
+  <input type="search" placeholder="Rechercher" class="search-bar">
+</nav>
+
+<main>
+  <h2>Relevé d'Identité Bancaire (RIB)</h2>
+
+  <div class="rib-box">
+    <h4>Informations Bancaires de Compte de Dépôt</h4>
+    <table>
+      <tbody>
+        <tr><th>Titulaire du Compte</th><td id="rib-name"></td></tr>
+        <tr><th>Domiciliation Bancaire</th><td>BANQUE DE FRANCE</td></tr>
+        <tr><th>IBAN</th><td id="rib-iban"></td></tr>
+        <tr><th>BIC (SWIFT)</th><td id="rib-bic"></td></tr>
+      </tbody>
+    </table>
+    <button class="btn btn-primary" style="margin-top: 20px;" onclick="window.print()">🖨 Imprimer ce RIB</button>
+  </div>
+</main>
+
+<aside class="right-panel">
+  <button onclick="location.href='dashboard.html'">SYNTHÈSE DES COMPTES</button>
+      <button onclick="location.href='historique.html'">HISTORIQUE DES OPÉRATIONS</button>
+      <button onclick="location.href='profil.html'">Profil</button>
+      <button onclick="location.href='virement.html'">FAIRE UN VIREMENT</button>
+      <button onclick="location.href='mes-cartes.html'">MES CARTES</button>
+</aside>
+
+<footer>
+  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const currentUser = checkAuth();
+  if (!currentUser) return;
+
+  document.getElementById('client-solde').textContent = formatCurrency(currentUser.solde);
+  document.getElementById('advisor-name').textContent = currentUser.advisor;
+  document.querySelector('.last-conn').textContent = `Dernière connexion le ${currentUser.lastConnection}`;
+
+  document.getElementById('rib-name').textContent = currentUser.name;
+  document.getElementById('rib-iban').textContent = currentUser.rib || 'Non renseigné';
+  document.getElementById('rib-bic').textContent = currentUser.bic || 'Non renseigné';
+
+  document.querySelector('.status').addEventListener('click', (e) => {
+    e.preventDefault();
+    localStorage.removeItem('currentClientCode');
+    window.location.href = 'index.html';
+  });
+});
+</script>
+</body>
+</html>

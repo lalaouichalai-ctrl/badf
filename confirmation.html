@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmation de Virement</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="shared.js"></script>
+</head>
+<body>
+<header>
+  <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
+    <span id="user-name">Bienvenue</span>
+    <span class="last-conn">Dernière connexion...</span>
+    <a href="index.html" class="status">Se déconnecter</a>
+  </div>
+</header>
+
+<main>
+  <h2>Confirmation de votre virement</h2>
+  <div class="account-block">
+    <p id="confirmation-message"></p>
+    <p><strong>Montant débité :</strong> <span id="conf-montant"></span></p>
+    <p><strong>Nouveau solde :</strong> <span id="conf-solde"></span></p>
+    <table>
+      <tbody>
+        <tr><th>Motif</th><td id="conf-motif"></td></tr>
+        <tr><th>IBAN</th><td id="conf-iban"></td></tr>
+        <tr><th>BIC</th><td id="conf-bic"></td></tr>
+        <tr><th>Domiciliation</th><td id="conf-domiciliation"></td></tr>
+        <tr><th>Bénéficiaire</th><td id="conf-nomPrenom"></td></tr>
+      </tbody>
+    </table>
+    <a href="historique.html"><button>Voir l'historique</button></a>
+  </div>
+</main>
+<footer>
+  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const currentUser = checkAuth();
+  if (!currentUser) return;
+
+  document.getElementById('user-name').textContent = `Bienvenue ${currentUser.name}`;
+  const params = new URLSearchParams(window.location.search);
+
+  const montant = parseFloat(params.get('montant')) || 0;
+  const motif = params.get('motif') || '';
+  const iban = params.get('iban') || '';
+  const bic = params.get('bic') || '';
+  const domiciliation = params.get('domiciliation') || '';
+  const nomPrenom = params.get('user_name') || '';
+
+  if (montant > 0) {
+    const transaction = {
+      date: new Date().toISOString(),
+      type: "Virement",
+      description: `${motif} vers ${nomPrenom} (${iban})`,
+      amount: -Math.abs(montant)
+    };
+    addPastHistory(currentUser.clientCode, transaction);
+
+    const updatedUser = getUsers().find(u => u.clientCode === currentUser.clientCode);
+
+    document.getElementById('confirmation-message').textContent =
+      `Votre virement de ${formatCurrency(montant)} à ${nomPrenom} a été enregistré.`;
+    document.getElementById('conf-montant').textContent = formatCurrency(montant);
+    document.getElementById('conf-solde').textContent = formatCurrency(updatedUser.solde);
+    document.getElementById('conf-motif').textContent = motif;
+    document.getElementById('conf-iban').textContent = iban;
+    document.getElementById('conf-bic').textContent = bic;
+    document.getElementById('conf-domiciliation').textContent = domiciliation;
+    document.getElementById('conf-nomPrenom').textContent = nomPrenom;
+  }
+});
+</script>
+</body>
+</html>
