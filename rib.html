@@ -1,82 +1,107 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Mon RIB et Informations Bancaires</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <meta charset="UTF-8">
+    <title>Mon RIB et Informations Bancaires - Banque de France</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <style>
-    .rib-box {
-      background: #fff;
-      padding: 25px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .rib-box table { margin-top: 15px; width: 100%; border-collapse: collapse; }
-    .rib-box th, .rib-box td { font-size: 1.05em; padding: 12px 10px; border-bottom: 1px solid #eee; text-align:left; }
-    .rib-box th { width: 30%; background-color: #f9f9f9; }
-    .rib-box td { font-weight: bold; color: #0066cc; }
-  </style>
+    <script src="shared.js"></script>
+    <style>
+        /* Styles d'en-tête Site B (Reprise du dashboard) */
+        header { background-color: #003366; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .top-bar { display: flex; justify-content: space-between; width: 100%; }
+        .user-info, .account-info, .advisor { margin-right: 20px; }
+        .user-info span { display: block; }
+        .account-info { text-align: right; }
+        .account-info span { display: block; font-weight: bold; }
+        .account-info .balance { font-size: 1.2em; color: #ffcc00; }
+        nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 20px; font-weight: bold; }
+        nav a { text-decoration: none; color: #003366; }
+        nav { background-color: #e0e6ed; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Layout principal Site B */
+        main { display: flex; padding: 30px; gap: 40px; }
+        .main-content { flex: 3; }
+        aside.right-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        aside.right-panel button { padding: 10px; background-color: #003366; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        /* Styles spécifiques au RIB */
+        .rib-box {
+            background: #fff;
+            padding: 25px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .rib-box table { margin-top: 15px; width: 100%; border-collapse: collapse; }
+        .rib-box th, .rib-box td { font-size: 1.05em; padding: 12px 10px; border-bottom: 1px solid #eee; text-align:left; }
+        .rib-box th { width: 30%; background-color: #f9f9f9; color: #003366; }
+        .rib-box td { font-weight: bold; color: #d9534f; font-family: 'Courier New', monospace; }
+        #rib-name { font-family: Arial, sans-serif; color: #003366; } /* Nom en police normale */
+        .btn-primary { background-color: #003366; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    </style>
 </head>
 <body>
 <header>
-  <div class="top-bar">
-    <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
-      <span>Bienvenue Monsieur / Madame</span>
-      <span class="last-conn">Dernière connexion...</span>
-      <span class="status">Déconnexion</span>
+    <div class="top-bar">
+        <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
+            <span>Bienvenue <strong id="user-name-header">...</strong></span>
+            <span id="last-conn" class="last-conn">Dernière connexion...</span>
+        </div>
+        <div class="account-info">
+            <span class="balance" id="client-solde">0,00 €</span>
+        </div>
+        <div class="advisor">
+            <p>Votre conseiller<br><strong id="advisor-name">Chargement...</strong></p>
+            <a href="index.html" class="status">Se déconnecter</a> 
+        </div>
     </div>
-    <div class="account-info">
-      <span class="balance" id="client-solde">0,00 €</span>
-      <span class="gains">Gains en cours</span>
-      <span class="mail">Votre messagerie</span>
-    </div>
-    <div class="advisor">
-      <p>Votre conseiller<br><strong id="advisor-name">Chargement...</strong></p>
-    </div>
-  </div>
 </header>
 
 <nav>
-  <ul>
-    <li><a href="dashboard.html">VOS COMPTES ET PRODUITS</a></li>
-    <li><a href="virement.html">OPERATIONS COURANTES</a></li>
-    <li><a href="profil.html">S’INFORMER OU SOUSCRIRE</a></li>
-  </ul>
-  <input type="search" placeholder="Rechercher" class="search-bar">
+    <ul>
+        <li><a href="dashboard.html">VOS COMPTES ET PRODUITS</a></li>
+        <li><a href="historique.html">OPERATIONS COURANTES</a></li>
+        <li><a href="profil.html">PROFIL ET DOCUMENTS</a></li>
+    </ul>
+    <input type="search" placeholder="Rechercher" class="search-bar">
 </nav>
 
 <main>
-  <h2>Relevé d'Identité Bancaire (RIB)</h2>
+    <div class="main-content">
+        <h2>Relevé d'Identité Bancaire (RIB)</h2>
+        <p>Ce document fournit vos coordonnées bancaires complètes pour la réception de virements SEPA ou internationaux.</p>
 
-  <div class="rib-box">
-    <h4>Informations Bancaires de Compte de Dépôt</h4>
-    <table>
-      <tbody>
-        <tr><th>Titulaire du Compte</th><td id="rib-name"></td></tr>
-        <tr><th>Domiciliation Bancaire</th><td>BANQUE DE FRANCE</td></tr>
-        <tr><th>IBAN</th><td id="rib-iban"></td></tr>
-        <tr><th>BIC (SWIFT)</th><td id="rib-bic"></td></tr>
-      </tbody>
-    </table>
-    <button class="btn btn-primary" style="margin-top: 20px;" onclick="window.print()">🖨 Imprimer ce RIB</button>
-  </div>
+        <div class="rib-box">
+            <h4>Informations Bancaires de Compte de Dépôt</h4>
+            <table>
+                <tbody>
+                    <tr><th>Titulaire du Compte</th><td id="rib-name">Chargement...</td></tr>
+                    <tr><th>Domiciliation Bancaire</th><td>GT BANK FRANCE (Siège)</td></tr>
+                    <tr><th>IBAN</th><td id="rib-iban">Chargement...</td></tr>
+                    <tr><th>BIC (SWIFT)</th><td id="rib-bic">Chargement...</td></tr>
+                </tbody>
+            </table>
+            <button class="btn-primary" style="margin-top: 20px;" onclick="alert('L\'impression du RIB n\'est pas supportée dans cette simulation.')">🖨 Imprimer ce RIB</button>
+        </div>
+    </div>
+
+    <aside class="right-panel">
+        <a href="dashboard.html"><button>SYNTHÈSE DES COMPTES</button></a>
+        <a href="historique.html"><button>HISTORIQUE DES OPÉRATIONS</button></a>
+        <a href="profil.html"><button>Mon Profil</button></a>
+        <a href="virement.html"><button>FAIRE UN VIREMENT</button></a>
+        <a href="mes-cartes.html"><button>MES CARTES</button></a>
+        <button class="sav" onclick="alert('VOTRE ESPACE SAV')">VOTRE ESPACE SAV</button>
+    </aside>
 </main>
 
-<aside class="right-panel">
-  <button onclick="location.href='dashboard.html'">SYNTHÈSE DES COMPTES</button>
-      <button onclick="location.href='historique.html'">HISTORIQUE DES OPÉRATIONS</button>
-      <button onclick="location.href='profil.html'">Profil</button>
-      <button onclick="location.href='virement.html'">FAIRE UN VIREMENT</button>
-      <button onclick="location.href='mes-cartes.html'">MES CARTES</button>
-</aside>
-
 <footer>
-  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+ <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France </p>
 </footer>
+
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
     

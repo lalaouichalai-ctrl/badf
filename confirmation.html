@@ -1,42 +1,101 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Confirmation de Virement</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="shared.js"></script>
-</head>
-<body>
+    <meta charset="UTF-8">
+    <title>Virement Confirmé - Banque de France</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="shared.js"></script>
+    
+    <style>
+        /* Styles de l'en-tête (standard Site B) */
+        header { background-color: #003366; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .user-info { font-size: 0.9em; }
+        
+        /* Styles pour le conteneur de confirmation */
+        main { display: flex; flex-direction: column; align-items: center; padding: 30px; }
+        h2 { color: #003366; margin-bottom: 25px; }
+        .account-block {
+            background: #f9f9f9;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 5px solid #003366;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .account-block h2 {
+            color: #003366;
+        }
+        .account-block table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .account-block th, .account-block td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        .account-block th {
+            background-color: #e0e6ed;
+            width: 30%;
+        }
+        .account-block button {
+            margin-top: 20px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .account-block button:hover {
+             background-color: #0055aa;
+        }
+    </style>
+</head>
+<body>
 <header>
-  <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
-    <span id="user-name">Bienvenue</span>
-    <span class="last-conn">Dernière connexion...</span>
-    <a href="index.html" class="status">Se déconnecter</a>
-  </div>
+    <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
+        <span id="user-name">Bienvenue</span><br>
+        <span id="last-conn" class="last-conn">Dernière connexion : </span>
+        <a href="index.html" class="status">Se déconnecter</a>
+    </div>
 </header>
 
 <main>
-  <h2>Confirmation de votre virement</h2>
-  <div class="account-block">
-    <p id="confirmation-message"></p>
-    <p><strong>Montant débité :</strong> <span id="conf-montant"></span></p>
-    <p><strong>Nouveau solde :</strong> <span id="conf-solde"></span></p>
-    <table>
-      <tbody>
-        <tr><th>Motif</th><td id="conf-motif"></td></tr>
-        <tr><th>IBAN</th><td id="conf-iban"></td></tr>
-        <tr><th>BIC</th><td id="conf-bic"></td></tr>
-        <tr><th>Domiciliation</th><td id="conf-domiciliation"></td></tr>
-        <tr><th>Bénéficiaire</th><td id="conf-nomPrenom"></td></tr>
-      </tbody>
-    </table>
-    <a href="historique.html"><button>Voir l'historique</button></a>
-  </div>
+    <h2>Confirmation de votre virement</h2>
+    <div class="account-block">
+        
+        <p id="confirmation-message" style="font-weight: bold; color: #003366; font-size: 1.1em;">
+            </p>
+        <hr>
+        
+        <p><strong>Montant débité :</strong> <span id="conf-montant" style="color: #d9534f; font-weight: bold;">...</span></p>
+        <p><strong>Nouveau solde estimé :</strong> <span id="conf-solde" style="color: #4CAF50; font-weight: bold;">...</span></p>
+        
+        <table>
+            <tbody>
+                <tr><th>Motif</th><td id="conf-motif"></td></tr>
+                <tr><th>IBAN</th><td id="conf-iban"></td></tr>
+                <tr><th>BIC</th><td id="conf-bic"></td></tr>
+                <tr><th>Domiciliation</th><td id="conf-domiciliation"></td></tr>
+                <tr><th>Bénéficiaire</th><td id="conf-nomPrenom"></td></tr>
+            </tbody>
+        </table>
+        
+        <a href="dashboard.html"><button style="margin-right: 15px;">Retour à la Synthèse</button></a>
+        <a href="historique.html"><button>Voir l'historique</button></a>
+    </div>
 </main>
 <footer>
-  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+   <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France </p>
 </footer>
 
 <script>

@@ -1,83 +1,143 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Mon Profil</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <meta charset="UTF-8">
+    <title>Mon Profil - Banque de France</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="shared.js"></script>
+    <style>
+        /* Styles d'en-tête Site B (Reprise du dashboard) */
+        header { background-color: #003366; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .top-bar { display: flex; justify-content: space-between; width: 100%; }
+        .user-info, .account-info, .advisor { margin-right: 20px; }
+        .user-info span { display: block; }
+        .account-info { text-align: right; }
+        .account-info span { display: block; font-weight: bold; }
+        .account-info .balance { font-size: 1.2em; color: #ffcc00; }
+        nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 20px; font-weight: bold; }
+        nav a { text-decoration: none; color: #003366; }
+        nav { background-color: #e0e6ed; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Layout principal Site B */
+        main { display: flex; padding: 30px; gap: 40px; }
+        .main-content { flex: 3; }
+        aside.right-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        aside.right-panel button { padding: 10px; background-color: #003366; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        /* Styles spécifiques au formulaire de profil */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            align-items: center;
+        }
+        .form-grid label { font-weight: bold; color: #003366; }
+        .account-block {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        /* Styles pour le changement de PIN */
+        #pin-form { margin-top: 15px; }
+        #pin-form input {
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 150px;
+            display: block;
+            text-align: center;
+        }
+        .btn-primary { background-color: #003366; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .success-message { color: green; font-weight: bold; margin-top: 10px; }
+        .error-message { color: red; font-weight: bold; margin-top: 10px; }
+    </style>
 </head>
 <body>
 <header>
-  <div class="top-bar">
-    <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
-      <span>Bienvenue Monsieur / Madame</span>
-      <span class="last-conn">Dernière connexion...</span>
-      <span class="status">Déconnexion</span>
+    <div class="top-bar">
+        <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
+            <span>Bienvenue <strong id="user-name-header">...</strong></span>
+            <span id="last-conn" class="last-conn">Dernière connexion...</span>
+        </div>
+        <div class="account-info">
+            <span class="balance" id="client-solde">0,00 €</span>
+        </div>
+        <div class="advisor">
+            <p>Votre conseiller<br><strong id="advisor-name">Chargement...</strong></p>
+            <a href="index.html" class="status">Se déconnecter</a>
+        </div>
     </div>
-    <div class="account-info">
-      <span class="balance" id="client-solde">0,00 €</span>
-      <span class="gains">Gains en cours</span>
-      <span class="mail">Votre messagerie</span>
-    </div>
-    <div class="advisor">
-      <p>Votre conseiller<br><strong id="advisor-name">Chargement...</strong></p>
-    </div>
-  </div>
 </header>
 
 <nav>
-  <ul>
-    <li><a href="dashboard.html">VOS COMPTES ET PRODUITS</a></li>
-    <li><a href="virement.html">OPERATIONS COURANTES</a></li>
-    <li><a href="profil.html">S’INFORMER OU SOUSCRIRE</a></li>
-  </ul>
-  <input type="search" placeholder="Rechercher" class="search-bar">
+    <ul>
+        <li><a href="dashboard.html">VOS COMPTES ET PRODUITS</a></li>
+        <li><a href="historique.html">OPERATIONS COURANTES</a></li>
+        <li><a href="profil.html">PROFIL ET DOCUMENTS</a></li>
+    </ul>
+    <input type="search" placeholder="Rechercher" class="search-bar">
 </nav>
 
-<main>
-  <h2>Mon Profil et Mes Informations Personnelles</h2>
+<main class="main-content">
+    <h2>Mon Profil et Mes Informations Personnelles</h2>
 
-  <div class="account-block">
-    <h4>Informations du Compte</h4>
-    <div class="form-grid" style="grid-template-columns: 1fr 2fr;">
-      <label>Nom Complet :</label> <p id="profile-name"></p>
-      <label>Code Client :</label> <p id="profile-client-code"></p>
-      <label>PIN (Masqué) :</label> <p>******</p>
-      <label>Conseiller Attitré :</label> <p id="profile-advisor"></p>
-    </div>
-  </div>
+    <div class="account-block">
+        <h4>Informations du Compte</h4>
+        <div class="form-grid">
+            <label>Nom Complet :</label> <p id="profile-name">Chargement...</p>
+            <label>Code Client :</label> <p id="profile-client-code">Chargement...</p>
+            <label>PIN (Masqué) :</label> <p>******</p>
+            <label>Conseiller Attitré :</label> <p id="profile-advisor">Chargement...</p>
+        </div>
+    </div><br>
 
-  <div class="account-block" style="margin-top: 20px;">
-    <h4>Coordonnées de Contact</h4>
-    <div class="form-grid" style="grid-template-columns: 1fr 2fr;">
-      <label>Téléphone Mobile :</label> <p id="profile-phone"></p>
-      <label>Email de Contact :</label> <p id="profile-email"></p>
-      <label>Adresse Postale :</label> <p id="profile-address"></p>
+    <div class="account-block" style="margin-top: 20px;">
+        <h4>Coordonnées de Contact</h4>
+        <div class="form-grid">
+            <label>Téléphone Mobile :</label> <p id="profile-phone">Chargement...</p>
+            <label>Email de Contact :</label> <p id="profile-email">Chargement...</p>
+            <label>Adresse Postale :</label> <p id="profile-address">Chargement...</p>
+        </div>
     </div>
-  </div>
-  
-  <div class="account-block" style="margin-top: 20px;">
-    <h4>RIB (Accès Rapide)</h4>
-     <div class="form-grid" style="grid-template-columns: 1fr 2fr;">
-      <label>RIB (IBAN) :</label> <p id="profile-rib"></p>
-      <label>BIC (SWIFT) :</label> <p id="profile-bic"></p>
+    <br>
+    <div class="account-block" style="margin-top: 20px;">
+        <h4>Modifier mon Code PIN</h4>
+        <form id="pin-form">
+            <label for="new-pin">Nouveau Code PIN (6 chiffres) :</label>
+            <input type="text" id="new-pin" maxlength="6" pattern="\d{6}" placeholder="******" required>
+            <button type="submit" id="pin-submit-btn" class="btn-primary">Changer le PIN</button>
+            <p id="pin-message" style="display: none;"></p>
+        </form>
     </div>
-    <a href="rib.html"><button class="btn btn-primary" style="margin-top: 15px;">Détails & Impression du RIB</button></a>
-  </div>
+
+    <div class="account-block" style="margin-top: 20px;">
+        <h4>RIB (Accès Rapide)</h4>
+        <div class="form-grid">
+            <label>RIB (IBAN) :</label> <p id="profile-rib">Chargement...</p>
+            <label>BIC (SWIFT) :</label> <p id="profile-bic">Chargement...</p>
+        </div>
+        <a href="rib.html"><button class="btn-primary" style="margin-top: 15px;">Détails & Impression du RIB</button></a>
+    </div>
 </main>
 
 <aside class="right-panel">
-  <a href="dashboard.html"><button>Synthèse des comptes</button></a>
-  <a href="virement.html"><button>Faire un virement</button></a>
-  <a href="mes-cartes.html"><button>Gérer mes cartes</button></a>
-  <button class="sav">VOTRE ESPACE SAV</button>
+    <a href="dashboard.html"><button>Synthèse des comptes</button></a>
+    <a href="virement.html"><button>Faire un virement</button></a>
+    <a href="mes-cartes.html"><button>Gérer mes cartes</button></a>
+    <a href="historique.html"><button>Historique des opérations</button></a>
+    <button class="sav" onclick="alert('VOTRE ESPACE SAV')">VOTRE ESPACE SAV</button>
 </aside>
 
 <footer>
-  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+    <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
 </footer>
+
+
 <script>
 
 // Variable globale pour stocker les données utilisateur

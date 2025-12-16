@@ -5,7 +5,8 @@
   <title>Synthèse de vos comptes</title>
   <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="shared.js"></script>
   
 </head>
 <body>
@@ -16,7 +17,7 @@
   </div>
   <div>
     <strong>Solde : <span id="user-solde">...</span></strong>
-    <a href="#" class="status">Se déconnecter</a>
+    <a href="index.html" class="status">Se déconnecter</a> 
   </div>
 </header>
 
@@ -37,9 +38,10 @@
           <th>Solde</th>
         </tr>
       </thead>
-      <tbody id="depot-accounts"></tbody>
+      <tbody id="depot-accounts">
+          </tbody>
     </table>
-	<div class="account-block">
+    <div class="account-block">
         <h4>Comptes d’Épargne </h4>
         <table>
           <thead>
@@ -57,17 +59,18 @@
   </div>
 
   <div class="right-panel">
-     <button>Espace RDV</button>
+      <button onclick="alert('Fonctionnalité non disponible')">Espace RDV</button>
     <a href="virement.html"><button>Faire un virement</button></a>
     <a href="rib.html"><button>Imprimer un RIB</button></a>
     <a href="mes-cartes.html"><button>Gérer mes cartes</button></a>
-    <button>Souscrire en ligne</button>
-    <button>Accéder à votre Espace Bourse</button>
-    <button class="sav">VOTRE ESPACE SAV</button>
+    <button onclick="alert('Fonctionnalité non disponible')">Souscrire en ligne</button>
+    <button onclick="alert('Fonctionnalité non disponible')">Accéder à votre Espace Bourse</button>
+    <button class="sav" onclick="alert('VOTRE ESPACE SAV')">VOTRE ESPACE SAV</button>
   </div>
 </main><footer>
-  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France </p>
 </footer>
+
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
     

@@ -1,79 +1,145 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Historique des opérations</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="shared.js"></script>
+    <meta charset="UTF-8">
+    <title>Historique des Opérations - Banque de France</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="shared.js"></script>
+    
+    <style>
+        /* Styles généraux pour le Site B (réintégration des styles essentiels) */
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(to right, #f5f7fa, #e0e6ed); margin: 0; padding: 0; }
+        header { background-color: #003366; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .user-info { font-size: 0.9em; }
+        
+        nav { background-color: #e0e6ed; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+        nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 20px; font-weight: bold; }
+        nav a { text-decoration: none; color: #003366; }
+        
+        main { display: flex; padding: 30px; gap: 40px; }
+        .left-panel { flex: 3; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .right-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .right-panel button { padding: 10px; background-color: #003366; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background-color: #003366; color: white; }
+        
+        /* Styles spécifiques pour les montants */
+        .amount-credit { color: #4CAF50; } /* Vert */
+        .amount-debit { color: #d9534f; } /* Rouge */
+    </style>
 </head>
 <body>
 <header>
-  <div class="top-bar">
     <div class="user-info"><img src=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Banque_de_France_Logo.svg/1280px-Banque_de_France_Logo.svg.png height=85 width=155>
-      <span id="user-name">Bienvenue</span>
-      <span class="last-conn">Dernière connexion...</span>
-      <a href="index.html" class="status">Se déconnecter</a>
+        <span id="user-name">Bienvenue</span><br>
+        <span id="last-conn" class="last-conn">Dernière connexion...</span>
     </div>
-  </div>
+    <div>
+        <strong>Solde : <span id="user-solde">...</span></strong>
+        <a href="index.html" class="status">Se déconnecter</a>
+    </div>
 </header>
 
 <nav>
-  <ul>
-    <li><a href="dashboard.html">VOS COMPTES ET PRODUITS</a></li>
-    <li><a href="virement.html">OPERATIONS COURANTES</a></li>
-    <li><a href="#">S’INFORMER OU SOUSCRIRE</a></li>
-  </ul>
-  <input type="search" placeholder="Rechercher" class="search-bar">
+    <ul>
+        <li><a href="dashboard.html">VOS COMPTES ET PRODUITS</a></li>
+        <li><a href="historique.html">OPÉRATIONS COURANTES</a></li>
+        <li><a href="#">S’INFORMER OU SOUSCRIRE</a></li>
+    </ul>
+    <input type="search" placeholder="Rechercher" class="search-bar">
 </nav>
 
 <main>
-  <div class="left-panel">
-    <h2>Historique de vos opérations</h2>
-    <table>
-      <thead>
-        <tr><th>Date</th><th>Opération</th><th>Montant</th></tr>
-      </thead>
-      <tbody id="historique-list"></tbody>
-    </table>
-  </div>
+    <div class="left-panel">
+        <h2>Historique de vos opérations</h2>
+        <table>
+            <thead>
+                <tr><th>Date</th><th>Opération</th><th>Montant</th></tr>
+            </thead>
+            <tbody id="historique-list">
+                <tr><td colspan="3" style="text-align: center;">Chargement des données...</td></tr>
+            </tbody>
+        </table>
+    </div>
 
-  <div class="right-panel">
-    <button onclick="location.href='dashboard.html'">SYNTHÈSE DES COMPTES</button>
-    <button onclick="location.href='historique.html'">HISTORIQUE DES OPÉRATIONS</button>
-    <button onclick="location.href='rib.html'">IMPRIMER UN RIB</button>
-	<button onclick="location.href='profil.html'">PROFIL</button>
-    <button onclick="location.href='virement.html'">FAIRE UN VIREMENT</button>
-  </div>
+    <div class="right-panel">
+        <button onclick="location.href='dashboard.html'">SYNTHÈSE DES COMPTES</button>
+        <button onclick="location.href='historique.html'">HISTORIQUE DES OPÉRATIONS</button>
+        <button onclick="location.href='rib.html'">IMPRIMER UN RIB</button>
+        <button onclick="location.href='profil.html'">PROFIL</button>
+        <button onclick="location.href='virement.html'">FAIRE UN VIREMENT</button>
+    </div>
 </main>
 <footer>
-  <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France</p>
+    <p>© BANQUE DE FRANCE - 39 Rue Croix des Petits Champs, 75001 Paris, France </p>
 </footer>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const currentUser = checkAuth();
-  if (!currentUser) return;
-  document.getElementById('user-name').textContent = `Bienvenue ${currentUser.name}`;
-
-  const freshUser = getUsers().find(u => u.clientCode === currentUser.clientCode);
-  const historiqueList = document.getElementById('historique-list');
-  historiqueList.innerHTML = '';
-
-  if (Array.isArray(freshUser.history) && freshUser.history.length > 0) {
-    freshUser.history.forEach(op => {
-      const tr = document.createElement('tr');
-      const sign = op.amount < 0 ? '-' : '+';
-      const color = op.amount < 0 ? 'red' : 'green';
-      tr.innerHTML = `
-        <td>${new Date(op.date).toLocaleDateString('fr-FR')}</td>
-        <td>${op.type} - ${op.description}</td>
-        <td style="color:${color}; font-weight:bold;">${sign}${formatCurrency(Math.abs(op.amount))}</td>
-      `;
-      historiqueList.appendChild(tr);
+/**
+ * Construit et affiche le tableau de l'historique des opérations.
+ * @param {Array<Object>} history L'historique des transactions de l'utilisateur.
+ */
+function displayHistoricalData(history) {
+    const historiqueList = document.getElementById('historique-list');
+    historiqueList.innerHTML = '';
+    
+    // Le tri est normalement fait par addPastHistory, mais on le sécurise ici.
+    history.sort((a, b) => {
+        // Supposons que les dates sont au format JJ/MM/AAAA ou YYYY-MM-DD
+        const dateA = new Date(a.date.split('/').reverse().join('-'));
+        const dateB = new Date(b.date.split('/').reverse().join('-'));
+        return dateB.getTime() - dateA.getTime(); // Du plus récent au plus ancien
     });
-  } else {
-    historiqueList.innerHTML = "<tr><td colspan='3'>Aucune opération enregistrée</td></tr>";
-  }
+
+
+    if (!history || history.length === 0) {
+        historiqueList.innerHTML = "<tr><td colspan='3' style='text-align: center;'>Aucune opération enregistrée.</td></tr>";
+        return;
+    }
+
+    history.forEach(op => {
+        const montant = op.amount;
+        const colorClass = montant < 0 ? 'amount-debit' : 'amount-credit';
+        
+        // Le libellé est stocké dans 'label' selon votre structure shared.js
+        const libelle = op.label || op.description || op.type || 'Opération non spécifiée'; 
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${op.date}</td>
+            <td>${libelle}</td>
+            <td class="${colorClass}" style="font-weight:bold; text-align: right;">${formatCurrency(montant)}</td>
+        `;
+        historiqueList.appendChild(tr);
+    });
+}
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // ⚠️ CORRECTION : Utilisation de checkAuth() pour la récupération des données fraîches et l'authentification
+    const user = await checkAuth();
+    
+    if (user) {
+        // Mise à jour du solde (le reste de l'en-tête est géré par checkAuth())
+        document.getElementById('user-solde').textContent = formatCurrency(user.solde);
+        
+        // Affichage de l'historique
+        // ⚠️ CORRECTION : Utilisation de la propriété 'history'
+        if (user.history && user.history.length > 0) {
+            displayHistoricalData(user.history);
+        } else {
+            document.getElementById('historique-list').innerHTML = "<tr><td colspan='3' style='text-align: center;'>Aucune opération enregistrée pour l'instant.</td></tr>";
+        }
+    } else {
+        // Si user est null, checkAuth a déjà redirigé vers index.html
+        document.getElementById('historique-list').innerHTML = "<tr><td colspan='3' style='text-align: center;'>Session expirée. Redirection...</td></tr>";
+    }
 });
 </script>
 </body>
